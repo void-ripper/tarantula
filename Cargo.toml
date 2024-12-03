@@ -1,0 +1,8 @@
+[workspace.package]
+version = "0.1.0"
+authors = ["void-ripper"]
+edition = "2021"
+
+[workspace]
+resolver = "2"
+members = ["tarantula-cli", "tarantula-daemon"]

@@ -1,0 +1,11 @@
+[package]
+name = "tarantula-daemon"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { version = "1.0.215", features = ["derive"] }
+sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio"] }
+tokio = { version = "1.42.0", features = ["full"] }
+toml = "0.8.19"
