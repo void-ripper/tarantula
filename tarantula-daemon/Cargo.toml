@@ -5,7 +5,12 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
+futures-util = "0.3.31"
 serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.133"
 sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio"] }
 tokio = { version = "1.42.0", features = ["full"] }
+tokio-tungstenite = "0.24.0"
 toml = "0.8.19"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }

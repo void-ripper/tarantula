@@ -1,23 +1,18 @@
-use std::{fmt::Display, net::SocketAddr, path::Path};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
-use serde::Deserialize;
-use tokio::net::TcpListener;
+use crate::error::Error;
+use futures_util::{stream::SplitSink, SinkExt, StreamExt};
+use tokio::{
+    net::{TcpListener, TcpStream},
+    sync::RwLock,
+};
+use tokio_tungstenite::{tungstenite::Message, WebSocketStream};
 
-#[derive(Debug)]
-struct Error {
-    pub line: u32,
-    pub module: String,
-    pub msg: String,
-}
+mod config;
+mod database;
+mod error;
 
-impl std::error::Error for Error {}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}[{}] => {}", self.module, self.line, self.msg)
-    }
-}
-
+#[macro_export]
 macro_rules! ex {
     ($e: expr) => {
         $e.map_err(|e| Error {
@@ -28,22 +23,67 @@ macro_rules! ex {
     };
 }
 
-#[derive(Deserialize)]
-struct Config {
-    pub listen: SocketAddr,
+struct Client {
+    out: SplitSink<WebSocketStream<TcpStream>, Message>,
 }
 
- fn load<P: AsRef<Path>>(name: P) -> Result<Config, Error> {
-    let data = ex!(std::fs::read_to_string(name));
-    Ok(ex!(toml::from_str(&data)))
+struct App {
+    clients: RwLock<HashMap<SocketAddr, Client>>,
+}
+
+async fn handle_connection(app: Arc<App>, sck: TcpStream, addr: SocketAddr) -> Result<(), Error> {
+    let ws_stream = ex!(tokio_tungstenite::accept_async(sck).await);
+
+    let (outgoing, mut incoming) = ws_stream.split();
+
+    let app0 = app.clone();
+    tokio::spawn(async move {
+        loop {
+            match incoming.next().await {
+                Some(Ok(n)) => {}
+                Some(Err(e)) => {
+                    tracing::error!("{e}");
+                }
+                None => break,
+            }
+        }
+
+        app0.clients.write().await.remove(&addr);
+    });
+
+    app.clients
+        .write()
+        .await
+        .insert(addr, Client { out: outgoing });
+
+    Ok(())
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let cfg = ex!(load("tarantula.toml"));
+    let cfg = ex!(config::load("tarantula.toml"));
     let listener = ex!(TcpListener::bind(cfg.listen).await);
 
-    listener.accept()
+    let app = Arc::new(App {
+        clients: RwLock::new(HashMap::new()),
+    });
 
-    Ok(())
+    loop {
+        match listener.accept().await {
+            Ok((sck, addr)) => {
+                if let Err(e) = handle_connection(app.clone(), sck, addr).await {
+                    tracing::error!("{e}");
+                }
+            }
+            Err(e) => {
+                return Err(Error {
+                    line: line!(),
+                    module: module_path!().into(),
+                    msg: e.to_string(),
+                });
+            }
+        }
+    }
+
+    // Ok(())
 }
