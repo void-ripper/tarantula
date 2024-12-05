@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html class="theme-dark" lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>tarantula</title>
+    <style>{% include "./bulma.min.css" %}</style>
+    <style>{% include "./main.css" %}</style>
+  </head>
+  <body>
+    <div class="footer-space">
+      <header class="container">
+        <nav class="navbar">
+          <div class="navbar-brand">
+            <a class="navbar-item has-text-info" href="/">
+              <span style="font-family: monospace; white-space: pre;">
+    :
+    :
+/\('')/\
+\      / 
+              </span>
+              Tarantula
+            </a>
+          </div>
+
+          <div class="navbar-menu">
+            <div class="navbar-start">
+              <a class="navbar-item" href="/add-url">Add Url</a>
+            </div>
+            
+            <div class="navbar-end"> </div>
+          </div>
+        </nav>
+      </header>
+
+      <main class="container mt-5">
+        {% block main %}{% endblock %}
+      </main>
+
+      <footer class="footer">
+        <div class="columns is-centered">
+          <div class="column is-half content">
+            <ul>
+              <li>
+                <a class="has-text-info" href="/doc">API</a>
+              </li>
+              <li>
+                <a class="has-text-info" href="/faq">FAQ</a>
+              </li>
+            </ul>
+          </div>
+          <div class="creator has-text-info is-size-7">
+            (c) void-ripper
+          </div>
+        </div>
+      </footer>
+    </div> 
+  </body>
+</html>
+

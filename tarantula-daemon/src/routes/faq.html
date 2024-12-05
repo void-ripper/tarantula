@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+
+{% macro secp() %}
+<a class="has-text-info" href="https://en.bitcoin.it/wiki/Secp256k1">Secp256k1</a>
+{% endmacro %}
+
+{% block main %}
+<div class="columns is-centered">
+  <div class="column is-half">
+    <div class="content">
+      <ol>
+        {% for (q, a) in faqs %}
+        <li>
+          <b class="has-text-info">{{ q }}</b>
+          <p>{{ a|safe }}</p>
+        </li>
+        {% endfor %}
+      </ol>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}

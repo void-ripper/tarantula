@@ -30,7 +30,7 @@ impl Database {
         let pid: i64 = row.get(0);
 
         let sql = r#"
-            INSERT INTO host_path(host_id, path_id) VALUES($1, $1)
+            INSERT INTO host_path(host_id, path_id) VALUES($1, $2)
             ON CONFLICT (host_id, path_id) DO NOTHING
         "#;
         ex!(sqlx::query(sql).bind(hid).bind(pid).execute(pool).await);

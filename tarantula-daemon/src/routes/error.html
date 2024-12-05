@@ -1,0 +1,14 @@
+{% extends "index.html" %}
+
+{% block main %}
+<div class=".columns.i-centered">
+  <div class=".column is-half">
+    <article class="message is-danger">
+      <div class="message-header"> Error </div>
+      <div class="message-body">
+        {{ msg }}
+      </div>
+    </article>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+
+{% block main %}
+<div class="columns">
+  <div class="column is-one-quarter">
+    <p class="menu-label">
+      Public Api
+      <ul class="menu-list">
+        <li>
+          <ul>
+            <li>[GET] /api/url</li>
+            <li>[POST] /api/url</li>
+          </ul>
+        </li>
+      </ul>
+    </p>
+  </div>
+
+  <div class="column is-half">
+    <div class="content">
+      {% include "doc/api-url.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

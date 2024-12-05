@@ -1,0 +1,16 @@
+{% extends "endpoint.html" %}
+
+{% block title %}
+[GET] /api/url
+{% endblock %}
+
+{% block request -%}
+curl http://{url}/api/url
+{% endblock %}
+
+{% block answer -%}
+[{
+  "": ""
+}]
+{% endblock %}
+

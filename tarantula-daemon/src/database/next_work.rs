@@ -6,6 +6,9 @@ use super::Database;
 
 impl Database {
     pub(crate) async fn handle_next_work(pool: &SqlitePool) -> Result<(), Error> {
+        let sql = r#""#;
+        let res = sqlx::query(sql).fetch_one(pool).await;
+
         Ok(())
     }
 

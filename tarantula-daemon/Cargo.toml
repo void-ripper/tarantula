@@ -11,9 +11,12 @@ serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
 sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio"] }
 tokio = { version = "1.42.0", features = ["full"] }
-tokio-tungstenite = "0.24.0"
 toml = "0.8.19"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 url = "2.5.4"
 borsh = { version = "1.5.3", features = ["derive"] }
+axum = { version = "0.7.9", features = ["ws"] }
+askama = { version = "0.12.1", features = ["with-axum"] }
+askama_axum = "0.4.0"
+tower-http = { version = "0.6.2", features = ["trace", "compression-gzip"] }

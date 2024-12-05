@@ -1,18 +1,22 @@
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use crate::error::Error;
-use database::Database;
-use futures_util::{stream::SplitSink, SinkExt, StreamExt};
-use serde::{Deserialize, Serialize};
-use tokio::{
-    net::{TcpListener, TcpStream},
-    sync::RwLock,
+use axum::{
+    extract::ws::{Message, WebSocket},
+    routing::any,
+    Router,
 };
-use tokio_tungstenite::{tungstenite::Message, WebSocketStream};
+use database::Database;
+use futures_util::stream::SplitSink;
+use serde::{Deserialize, Serialize};
+use tokio::{net::TcpListener, sync::RwLock};
+use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 
 mod config;
 mod database;
 mod error;
+mod routes;
+mod ws;
 
 #[macro_export]
 macro_rules! ex {
@@ -25,100 +29,16 @@ macro_rules! ex {
     };
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(tag = "kind")]
-enum TarantulaMessage {
-    AddUrl {
-        url: String,
-    },
-    NextWork,
-    NextWorkAnswer {
-        url: String,
-    },
-    ScrapResult {
-        url: String,
-        keywords: HashMap<String, u32>,
-        links: Vec<String>,
-    },
+pub(crate) struct Client {
+    out: SplitSink<WebSocket, Message>,
 }
 
-struct Client {
-    out: SplitSink<WebSocketStream<TcpStream>, Message>,
-}
-
-struct App {
+pub(crate) struct App {
     clients: RwLock<HashMap<SocketAddr, Arc<Client>>>,
     db: Database,
 }
 
-async fn handle_connection(app: Arc<App>, sck: TcpStream, addr: SocketAddr) -> Result<(), Error> {
-    let ws_stream = ex!(tokio_tungstenite::accept_async(sck).await);
-
-    let (outgoing, mut incoming) = ws_stream.split();
-    let client = Arc::new(Client { out: outgoing });
-
-    let app0 = app.clone();
-    let client0 = client.clone();
-    tokio::spawn(async move {
-        loop {
-            match incoming.next().await {
-                Some(Ok(n)) => match n {
-                    Message::Text(txt) => {
-                        let msg: Result<TarantulaMessage, _> = serde_json::from_str(&txt);
-                        handle_message(&app0, &client0, msg).await;
-                    }
-                    Message::Binary(bin) => {
-                        let msg: Result<TarantulaMessage, _> = serde_json::from_slice(&bin);
-                        handle_message(&app0, &client0, msg).await;
-                    }
-                    Message::Ping(_ping) => {
-                        // outgoing.send(Message::Pong(ping)).await;
-                    }
-                    Message::Close(_cl) => break,
-                    _ => {}
-                },
-                Some(Err(e)) => {
-                    tracing::error!("{e}");
-                }
-                None => break,
-            }
-        }
-
-        app0.clients.write().await.remove(&addr);
-    });
-
-    app.clients.write().await.insert(addr, client);
-
-    Ok(())
-}
-
-async fn handle_message(
-    app: &Arc<App>,
-    client: &Arc<Client>,
-    msg: Result<TarantulaMessage, serde_json::Error>,
-) {
-    match msg {
-        Ok(msg) => match msg {
-            TarantulaMessage::AddUrl { url } => {
-                if let Err(e) = app.db.add_url(url).await {
-                    tracing::error!("{e}");
-                }
-            }
-            TarantulaMessage::NextWork => {}
-            TarantulaMessage::NextWorkAnswer { .. } => {
-                tracing::error!("we should never get a NextWorkAnswer");
-            }
-            TarantulaMessage::ScrapResult {
-                url,
-                keywords,
-                links,
-            } => {}
-        },
-        Err(e) => {
-            tracing::error!("{e}");
-        }
-    }
-}
+pub(crate) type AppPtr = Arc<App>;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -126,29 +46,27 @@ async fn main() -> Result<(), Error> {
 
     tracing_subscriber::fmt().with_env_filter(&cfg.log).init();
 
-    let listener = ex!(TcpListener::bind(cfg.listen).await);
-
     let app = Arc::new(App {
         clients: RwLock::new(HashMap::new()),
         db: ex!(Database::new(&cfg).await),
     });
 
-    loop {
-        match listener.accept().await {
-            Ok((sck, addr)) => {
-                if let Err(e) = handle_connection(app.clone(), sck, addr).await {
-                    tracing::error!("{e}");
-                }
-            }
-            Err(e) => {
-                return Err(Error {
-                    line: line!(),
-                    module: module_path!().into(),
-                    msg: e.to_string(),
-                });
-            }
-        }
-    }
+    let route = Router::new()
+        .nest("/", routes::config())
+        .route("/ws", any(ws::handle_connection))
+        .with_state(app.clone())
+        .layer(CompressionLayer::new())
+        .layer(TraceLayer::new_for_http());
 
-    // Ok(())
+    tracing::info!("listen to: {}", cfg.listen);
+    let listener = ex!(TcpListener::bind(cfg.listen).await);
+    ex!(axum::serve(listener, route)
+        .with_graceful_shutdown(async {
+            if let Err(e) = tokio::signal::ctrl_c().await {
+                tracing::error!("{e}");
+            }
+        })
+        .await);
+
+    Ok(())
 }

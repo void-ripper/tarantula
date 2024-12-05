@@ -1,0 +1,21 @@
+{% extends "index.html" %}
+
+{% block main %}
+<form action="/add-url" method="post">
+  <div class="columns is-centered">
+    <div class="column is-one-third">
+      <label class="label">Add Url</label>
+      <div class="field has-addons">
+        <div class="control is-expanded">
+          <input class="input" name="url" type="url">
+        </div>
+        <div class="control">
+          <button class="button is-info">Add</button>
+        </div>
+      </div>
+
+      <div class="mt-5 has-text-danger"> {{ error }} </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
