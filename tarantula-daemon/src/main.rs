@@ -1,16 +1,11 @@
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use crate::error::Error;
-use axum::{
-    extract::ws::{Message, WebSocket},
-    routing::any,
-    Router,
-};
+use axum::{routing::any, Router};
 use database::Database;
-use futures_util::stream::SplitSink;
-use serde::{Deserialize, Serialize};
 use tokio::{net::TcpListener, sync::RwLock};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
+use ws::Client;
 
 mod config;
 mod database;
@@ -27,10 +22,6 @@ macro_rules! ex {
             msg: e.to_string(),
         })?
     };
-}
-
-pub(crate) struct Client {
-    out: SplitSink<WebSocket, Message>,
 }
 
 pub(crate) struct App {

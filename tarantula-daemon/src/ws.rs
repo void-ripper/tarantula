@@ -1,13 +1,16 @@
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use axum::{
-    extract::{ws::Message, ConnectInfo, State, WebSocketUpgrade},
+    extract::{
+        ws::{Message, WebSocket},
+        ConnectInfo, State, WebSocketUpgrade,
+    },
     response::IntoResponse,
 };
 use futures_util::{stream::SplitSink, SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 
-use crate::{AppPtr, Client};
+use crate::AppPtr;
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "kind")]
@@ -24,6 +27,10 @@ pub enum TarantulaMessage {
         keywords: HashMap<String, u32>,
         links: Vec<String>,
     },
+}
+
+pub struct Client {
+    out: SplitSink<WebSocket, Message>,
 }
 
 pub async fn handle_connection(

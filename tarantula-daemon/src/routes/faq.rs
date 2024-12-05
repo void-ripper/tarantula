@@ -1,16 +1,15 @@
-use askama_axum::Template;
+use askama::Template;
 use axum::response::IntoResponse;
 
-use crate::{error::VoughtResult, session::VoughtSession};
+use crate::error::Result;
 
 #[derive(Template)]
 #[template(path = "faq.html")]
 struct FaqHtml {
-    loggedin: bool,
     faqs: Vec<(String, String)>,
 }
 
-pub async fn faq(vs: Option<VoughtSession>) -> VoughtResult<impl IntoResponse> {
+pub async fn faq() -> Result<impl IntoResponse> {
     let secp =
         r#"<a class="has-text-info" href="https://en.bitcoin.it/wiki/Secp256k1">Secp256k1</a>"#;
 
@@ -43,8 +42,5 @@ pub async fn faq(vs: Option<VoughtSession>) -> VoughtResult<impl IntoResponse> {
         ),
     ];
 
-    Ok(FaqHtml {
-        loggedin: vs.is_some(),
-        faqs,
-    })
+    Ok(FaqHtml { faqs })
 }
