@@ -8,8 +8,12 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Config {
+    /// The websocket.
     pub listen: SocketAddr,
+    pub peer: SocketAddr,
     pub folder: PathBuf,
+    /// The log filter.
+    pub log: String,
 }
 
 pub fn load<P: AsRef<Path>>(name: P) -> Result<Config, Error> {
