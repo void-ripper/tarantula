@@ -2,7 +2,10 @@ use std::{sync::Arc, time::Duration};
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use futures_util::StreamExt;
-use sqlx::{Executor, SqlitePool};
+use sqlx::{
+    sqlite::{SqliteConnectOptions, SqliteJournalMode},
+    Executor, SqlitePool,
+};
 
 use crate::{config::Config, error::Error, ex};
 
@@ -44,14 +47,16 @@ impl Database {
 
         let existed = dbfile.exists();
 
-        if !existed {
-            ex!(std::fs::write(&dbfile, ""));
-        }
-
-        let pool = ex!(SqlitePool::connect(&dbfile.to_string_lossy()).await);
+        let opts = SqliteConnectOptions::new()
+            .filename(&dbfile)
+            .foreign_keys(true)
+            .create_if_missing(true)
+            .journal_mode(SqliteJournalMode::Wal);
+        let pool = ex!(SqlitePool::connect_with(opts).await);
         let pool0 = pool.clone();
 
         if !existed {
+            tracing::info!("initialize database");
             let mut stream = pool.execute_many(include_str!("../schema.sql"));
             while let Some(Ok(_n)) = stream.next().await {}
         }
