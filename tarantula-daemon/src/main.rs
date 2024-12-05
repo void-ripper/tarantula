@@ -37,6 +37,10 @@ async fn main() -> Result<(), Error> {
 
     tracing_subscriber::fmt().with_env_filter(&cfg.log).init();
 
+    if !cfg.folder.exists() {
+        ex!(std::fs::create_dir_all(&cfg.folder));
+    }
+
     let app = Arc::new(App {
         clients: RwLock::new(HashMap::new()),
         db: ex!(Database::new(&cfg).await),
