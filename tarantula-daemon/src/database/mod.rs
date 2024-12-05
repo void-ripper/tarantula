@@ -39,8 +39,7 @@ impl Database {
         let peer = ex!(mcriddle::Peer::new(pcfg));
         let mut next_blk = peer.last_block_receiver();
 
-        let folder = ex!(cfg.folder.canonicalize());
-        let dbfile = folder.join("tarantula.db");
+        let dbfile = cfg.folder.join("tarantula.db");
         tracing::info!("use db: {}", dbfile.display());
 
         let existed = dbfile.exists();
