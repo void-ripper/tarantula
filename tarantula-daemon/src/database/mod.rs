@@ -39,12 +39,16 @@ impl Database {
         let peer = ex!(mcriddle::Peer::new(pcfg));
         let mut next_blk = peer.last_block_receiver();
 
-        // let folder = ex!(cfg.folder.canonicalize());
-        // let dbfile = folder.join("tarantula.db");
-        let dbfile = PathBuf::from("data/tarantula.db");
+        let folder = ex!(cfg.folder.canonicalize());
+        let dbfile = folder.join("tarantula.db");
         tracing::info!("use db: {}", dbfile.display());
 
         let existed = dbfile.exists();
+
+        if !existed {
+            ex!(std::fs::write(&dbfile, ""));
+        }
+
         let pool = ex!(SqlitePool::connect(&dbfile.to_string_lossy()).await);
         let pool0 = pool.clone();
 
