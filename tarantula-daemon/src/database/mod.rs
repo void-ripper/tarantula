@@ -30,18 +30,6 @@ pub struct Database {
 
 impl Database {
     pub async fn new(cfg: &Config) -> Result<Self, Error> {
-        let pcfg = mcriddle::Config {
-            addr: cfg.peer,
-            folder: cfg.folder.clone(),
-            keep_alive: Duration::from_millis(300),
-            data_gather_time: Duration::from_millis(500),
-            thin: false,
-            relationship_time: Duration::from_secs(30),
-            relationship_count: 3,
-        };
-        let peer = ex!(mcriddle::Peer::new(pcfg));
-        let mut next_blk = peer.last_block_receiver();
-
         let dbfile = cfg.folder.join("tarantula.db");
         tracing::info!("use db: {}", dbfile.display());
 
@@ -59,6 +47,24 @@ impl Database {
             tracing::info!("initialize database");
             let mut stream = pool.execute_many(include_str!("../schema.sql"));
             while let Some(Ok(_n)) = stream.next().await {}
+        }
+
+        let pcfg = mcriddle::Config {
+            addr: cfg.peer,
+            folder: cfg.folder.clone(),
+            keep_alive: Duration::from_millis(300),
+            data_gather_time: Duration::from_millis(500),
+            thin: false,
+            relationship_time: Duration::from_secs(30),
+            relationship_count: 3,
+        };
+        let peer = ex!(mcriddle::Peer::new(pcfg));
+        let mut next_blk = peer.last_block_receiver();
+
+        for con in cfg.connections.iter() {
+            if let Err(e) = peer.connect(*con).await {
+                tracing::error!("{e}");
+            }
         }
 
         tokio::spawn(async move {

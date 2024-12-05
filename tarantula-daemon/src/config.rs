@@ -14,6 +14,7 @@ pub struct Config {
     pub folder: PathBuf,
     /// The log filter.
     pub log: String,
+    pub connections: Vec<SocketAddr>,
 }
 
 pub fn load<P: AsRef<Path>>(name: P) -> Result<Config, Error> {
