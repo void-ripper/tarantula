@@ -1,16 +1,16 @@
-{% extends "endpoint.html" %}
 
-{% block title %}
-[GET] /api/url
-{% endblock %}
+<h5>Add Url</h5>
 
-{% block request -%}
-curl http://{url}/api/url
-{% endblock %}
-
-{% block answer -%}
-[{
-  "": ""
-}]
-{% endblock %}
+<article class="message is-info">
+  <div class="message-header">JS Example</div>
+  <div class="message-body">
+    <pre style="font-family:monospace;color: rgb(216, 222, 233); background-color: rgb(46, 52, 64); font-weight: 400; ">
+    <span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> sck = <span style="color: rgb(129, 161, 193); font-weight: 400;">new</span> <span style="color: rgb(143, 188, 187); font-weight: 400;">WebSocket</span>(<span style="color: rgb(163, 190, 140); font-weight: 400;">"ws://127.0.0.1:39093/ws"</span>)
+    
+    sck.<span style="color: rgb(143, 188, 187); font-weight: 400;">send</span>(<span style="color: rgb(143, 188, 187); font-weight: 400;">JSON</span>.<span style="color: rgb(143, 188, 187); font-weight: 400;">stringify</span>({
+      <span style="color: rgb(163, 190, 140); font-weight: 400;">"kind"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"AddUrl"</span>,
+      <span style="color: rgb(163, 190, 140); font-weight: 400;">"url"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"https://www.youtube.com/watch?v=gOymiMEKWqQ"</span>
+    }))</pre>
+  </div>
+</article>
 

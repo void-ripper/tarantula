@@ -1,24 +1,27 @@
 {% extends "index.html" %}
 
 {% block main %}
-<div class="columns">
+<div class="columns is-centered">
+  <!--
   <div class="column is-one-quarter">
-    <p class="menu-label">
-      Public Api
+    <aside class="menu">
+      <p class="menu-label"> Public Api </p>
       <ul class="menu-list">
-        <li>
-          <ul>
-            <li>[GET] /api/url</li>
-            <li>[POST] /api/url</li>
-          </ul>
-        </li>
+        <li><a>Add Url</a></li>
+        <li><a>Get Url to scrap</a></li>
       </ul>
-    </p>
+    </aside>
   </div>
+  -->
 
   <div class="column is-half">
     <div class="content">
+      <div class="block mb-5">
       {% include "doc/api-url.html" %}
+      </div>
+      <div class="block">
+      {% include "doc/scrap.html" %}
+      </div>
     </div>
   </div>
 </div>
