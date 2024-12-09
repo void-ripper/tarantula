@@ -1160,7 +1160,7 @@ checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
 [[package]]
 name = "mcriddle"
 version = "0.1.0"
-source = "git+https://github.com/void-ripper/mcriddle.git#f8116af4b1e3526dbc1886409d92939a92a62fb0"
+source = "git+https://github.com/void-ripper/mcriddle.git?tag=v0.1.0#1baffe35fa9fab27e3c7aad2151ef5bb178c904a"
 dependencies = [
  "aes",
  "borsh",

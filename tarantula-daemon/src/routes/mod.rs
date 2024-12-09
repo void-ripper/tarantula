@@ -5,7 +5,7 @@ use crate::AppPtr;
 
 mod coc;
 mod doc;
-mod faq;
+// mod faq;
 mod index;
 mod url;
 

@@ -55,13 +55,16 @@ async fn main() -> Result<(), Error> {
 
     tracing::info!("listen to: {}", cfg.listen);
     let listener = ex!(TcpListener::bind(cfg.listen).await);
-    ex!(axum::serve(listener, route)
-        .with_graceful_shutdown(async {
-            if let Err(e) = tokio::signal::ctrl_c().await {
-                tracing::error!("{e}");
-            }
-        })
-        .await);
+    ex!(axum::serve(
+        listener,
+        route.into_make_service_with_connect_info::<SocketAddr>()
+    )
+    .with_graceful_shutdown(async {
+        if let Err(e) = tokio::signal::ctrl_c().await {
+            tracing::error!("{e}");
+        }
+    })
+    .await);
 
     Ok(())
 }

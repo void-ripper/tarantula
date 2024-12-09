@@ -85,7 +85,7 @@ pub async fn handle_message(
         Ok(msg) => match msg {
             TarantulaMessage::AddUrl { url } => {
                 if let Err(e) = app.db.add_url(url).await {
-                    tracing::error!("{e}");
+                    tracing::error!("add url: {e}");
                 }
             }
             TarantulaMessage::NextWork => {}
@@ -99,7 +99,7 @@ pub async fn handle_message(
             } => {}
         },
         Err(e) => {
-            tracing::error!("{e}");
+            tracing::error!("msg: {e}");
         }
     }
 }
