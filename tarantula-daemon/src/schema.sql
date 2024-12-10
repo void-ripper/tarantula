@@ -1,9 +1,11 @@
 
 CREATE TABLE host (
     id INTEGER PRIMARY KEY,
+    https INT NOT NULL,
     name VARCHAR NOT NULL UNIQUE,
     created DATETIME NOT NULL DEFAULT current_timestamp
 );
+CREATE UNIQUE INDEX uk_host ON host(https, name);
 
 CREATE TABLE path (
     id INTEGER PRIMARY KEY,

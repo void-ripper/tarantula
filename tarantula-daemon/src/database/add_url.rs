@@ -23,15 +23,37 @@ async fn select_or_insert(
     })
 }
 
+async fn select_or_insert_host(pool: &SqlitePool, val: &str, https: bool) -> Result<i64, Error> {
+    let select = "SELECT id FROM host WHERE https = $1 AND name = $2";
+    let id = ex!(sqlx::query(&select)
+        .bind(https)
+        .bind(val)
+        .fetch_optional(pool)
+        .await);
+
+    Ok(if let Some(id) = id {
+        id.get(0)
+    } else {
+        let insert = "INSERT INTO host(https, name) VALUES($1, $2) RETURNING id";
+        let res = ex!(sqlx::query(&insert)
+            .bind(https)
+            .bind(val)
+            .fetch_one(pool)
+            .await);
+        res.get(0)
+    })
+}
+
 impl Database {
-    pub(crate) async fn handle_add_url(pool: &SqlitePool, url: String) -> Result<(), Error> {
+    pub async fn handle_add_url(pool: &SqlitePool, url: String) -> Result<(), Error> {
         let url = ex!(Url::parse(&url));
 
+        let https = if url.scheme() == "https" { true } else { false };
         let host = url.host_str().unwrap_or("");
         let path = url.path();
         let query = url.query().unwrap_or("");
 
-        let hid = ex!(select_or_insert(pool, "host", "name", host).await);
+        let hid = ex!(select_or_insert_host(pool, host, https).await);
         let pid = ex!(select_or_insert(pool, "path", "path", path).await);
         let fid = ex!(select_or_insert(pool, "query", "query", query).await);
 
@@ -51,6 +73,17 @@ impl Database {
 
     pub async fn add_url(&self, url: String) -> Result<(), Error> {
         let purl = ex!(Url::parse(&url));
+        let https = match purl.scheme() {
+            "https" => true,
+            "http" => false,
+            n @ _ => {
+                return Err(Error {
+                    line: line!(),
+                    module: module_path!().into(),
+                    msg: format!("not supported schema: {}", n),
+                })
+            }
+        };
         let host = purl.host_str().unwrap();
         let path = purl.path();
         let query = purl.query().unwrap_or("");
@@ -58,9 +91,10 @@ impl Database {
         let sql = r#"
             SELECT l.id FROM host h, path p, query f, link l
             WHERE l.host_id = h.id AND l.path_id = p.id AND l.query_id = f.id
-                AND h.name = $1 AND p.path = $2 AND f.query = $3
+                AND h.https = $1 AND h.name = $2 AND p.path = $3 AND f.query = $4
         "#;
         let res = ex!(sqlx::query(sql)
+            .bind(https)
             .bind(host)
             .bind(path)
             .bind(query)
