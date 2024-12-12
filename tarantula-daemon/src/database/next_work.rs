@@ -3,6 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use mcriddle::PubKeyBytes;
 use sqlx::{Row, SqlitePool};
 use tokio::sync::{oneshot, Mutex};
+use url::Url;
 
 use crate::{error::Error, ex};
 
@@ -19,7 +20,7 @@ impl Database {
         LEFT JOIN host h ON l.host_id = h.id
         LEFT JOIN path p ON l.path_id = p.id
         LEFT JOIN query q ON l.query_id = q.id
-        ORDER l.last_check
+        ORDER BY l.last_check
         LIMIT 1
         "#;
         let res = ex!(sqlx::query(sql).fetch_one(pool).await);
@@ -37,23 +38,53 @@ impl Database {
                 .await
         );
 
-        let url = format!(
-            "{}://{}{}{}",
+        let mut url = format!(
+            "{}://{}{}",
             if https == 1 { "https" } else { "http" },
             host,
             path,
-            query
         );
+
+        if query.len() > 0 {
+            url.push('?');
+            url.push_str(&query);
+        }
 
         Ok(Command::ClaimWork { pubkey, url, oid })
     }
 
     pub async fn handle_claim_work(
+        pool: &SqlitePool,
         claimers: &Arc<Mutex<HashMap<String, oneshot::Sender<String>>>>,
         pubkey: PubKeyBytes,
         oid: String,
         url: String,
     ) -> Result<(), Error> {
+        let purl = ex!(Url::parse(&url));
+        let https = if "https" == purl.scheme() {
+            true
+        } else {
+            false
+        };
+        let host = purl.host_str().unwrap();
+        let path = purl.path();
+        let query = purl.query().unwrap_or("");
+
+        let sql = r#"
+            UPDATE link SET last_check = current_timestamp
+            WHERE
+                host_id = (SELECT id FROM host WHERE https = $1 AND name = $2)
+                AND path_id = (SELECT id FROM path WHERE path = $3)
+                AND query_id = (SELECT id FROM query WHERE query = $4)
+        "#;
+        ex!(sqlx::query(sql)
+            .bind(https)
+            .bind(host)
+            .bind(path)
+            .bind(query)
+            .execute(pool)
+            .await);
+
         if let Some(tx) = claimers.lock().await.remove(&oid) {
             ex!(tx.send(url));
         }

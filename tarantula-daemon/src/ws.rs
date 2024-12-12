@@ -9,8 +9,9 @@ use axum::{
 };
 use futures_util::{stream::SplitSink, SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
+use tokio::sync::Mutex;
 
-use crate::AppPtr;
+use crate::{error::Error, ex, AppPtr};
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "kind")]
@@ -32,7 +33,7 @@ pub enum TarantulaMessage {
 }
 
 pub struct Client {
-    out: SplitSink<WebSocket, Message>,
+    out: Mutex<SplitSink<WebSocket, Message>>,
 }
 
 pub async fn handle_connection(
@@ -42,7 +43,9 @@ pub async fn handle_connection(
 ) -> impl IntoResponse {
     ws.on_upgrade(move |socket| async move {
         let (outgoing, mut incoming) = socket.split();
-        let client = Arc::new(Client { out: outgoing });
+        let client = Arc::new(Client {
+            out: Mutex::new(outgoing),
+        });
 
         let app0 = app.clone();
         let client0 = client.clone();
@@ -52,11 +55,15 @@ pub async fn handle_connection(
                     Some(Ok(n)) => match n {
                         Message::Text(txt) => {
                             let msg: Result<TarantulaMessage, _> = serde_json::from_str(&txt);
-                            handle_message(&app0, &client0, msg).await;
+                            if let Err(e) = handle_message(&app0, &client0, msg).await {
+                                tracing::error!("ws message: {e}");
+                            }
                         }
                         Message::Binary(bin) => {
                             let msg: Result<TarantulaMessage, _> = serde_json::from_slice(&bin);
-                            handle_message(&app0, &client0, msg).await;
+                            if let Err(e) = handle_message(&app0, &client0, msg).await {
+                                tracing::error!("ws message: {e}");
+                            }
                         }
                         Message::Ping(_ping) => {
                             // outgoing.send(Message::Pong(ping)).await;
@@ -82,32 +89,31 @@ pub async fn handle_message(
     app: &AppPtr,
     client: &Arc<Client>,
     msg: Result<TarantulaMessage, serde_json::Error>,
-) {
+) -> Result<(), Error> {
+    let msg = ex!(msg);
     match msg {
-        Ok(msg) => match msg {
-            TarantulaMessage::AddUrl { url } => {
-                if let Err(e) = app.db.add_url(url).await {
-                    tracing::error!("add url: {e}");
-                }
-            }
-            TarantulaMessage::NextWork { pubkey } => {
-                let pubk = hex::decode(pubkey).unwrap();
-                let mut pubkey = [0u8; 33];
-                pubkey.copy_from_slice(&pubk);
-
-                app.db.get_next_work(pubkey).await;
-            }
-            TarantulaMessage::NextWorkAnswer { .. } => {
-                tracing::error!("we should never get a NextWorkAnswer");
-            }
-            TarantulaMessage::ScrapResult {
-                url,
-                keywords,
-                links,
-            } => {}
-        },
-        Err(e) => {
-            tracing::error!("msg: {e}");
+        TarantulaMessage::AddUrl { url } => {
+            ex!(app.db.add_url(url).await);
         }
+        TarantulaMessage::NextWork { pubkey } => {
+            let pubk = hex::decode(pubkey).unwrap();
+            let mut pubkey = [0u8; 33];
+            pubkey.copy_from_slice(&pubk);
+
+            let url = ex!(app.db.get_next_work(pubkey).await);
+            let msg = TarantulaMessage::NextWorkAnswer { url };
+            let data = ex!(serde_json::to_string(&msg));
+            ex!(client.out.lock().await.send(Message::Text(data)).await);
+        }
+        TarantulaMessage::NextWorkAnswer { .. } => {
+            tracing::error!("we should never get a NextWorkAnswer");
+        }
+        TarantulaMessage::ScrapResult {
+            url,
+            keywords,
+            links,
+        } => {}
     }
+
+    Ok(())
 }

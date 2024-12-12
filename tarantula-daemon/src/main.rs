@@ -1,7 +1,8 @@
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, net::SocketAddr, path::PathBuf, sync::Arc};
 
 use crate::error::Error;
 use axum::{routing::any, Router};
+use clap::Parser;
 use database::Database;
 use tokio::{net::TcpListener, sync::RwLock};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
@@ -31,9 +32,17 @@ pub(crate) struct App {
 
 pub(crate) type AppPtr = Arc<App>;
 
+#[derive(Parser)]
+#[command(about, author, version)]
+struct Args {
+    #[arg(long)]
+    config: PathBuf,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let cfg = ex!(config::load("tarantula.toml"));
+    let args = Args::parse();
+    let cfg = ex!(config::load(args.config));
 
     tracing_subscriber::fmt().with_env_filter(&cfg.log).init();
 

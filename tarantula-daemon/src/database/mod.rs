@@ -82,16 +82,13 @@ impl Database {
             let peer1 = peer1.clone();
 
             Box::pin(async move {
-                let mut to_remove = Vec::new();
                 let mut to_add = Vec::new();
 
-                for (k, v) in data.iter() {
-                    let cmd: Command = borsh::from_slice(&v.data).unwrap();
-                    match cmd {
-                        Command::NextWork { pubkey, oid } => {
-                            to_remove.push(k.clone());
-                            let cmd =
-                                Self::handle_next_work(&pool1, pubkey, oid)
+                for v in data.values() {
+                    match borsh::from_slice(&v.data) {
+                        Ok(cmd) => match cmd {
+                            Command::NextWork { pubkey, oid } => {
+                                let cmd = Self::handle_next_work(&pool1, pubkey, oid)
                                     .await
                                     .map_err(|e| {
                                         mcriddle::Error::external(
@@ -100,17 +97,17 @@ impl Database {
                                             e.to_string(),
                                         )
                                     })?;
-                            let cmd_data = borsh::to_vec(&cmd)
-                                .map_err(|e| mcriddle::Error::io(line!(), module_path!(), e))?;
-                            let new_data = peer1.create_data(cmd_data)?;
-                            to_add.push(new_data);
+                                let cmd_data = borsh::to_vec(&cmd)
+                                    .map_err(|e| mcriddle::Error::io(line!(), module_path!(), e))?;
+                                let new_data = peer1.create_data(cmd_data)?;
+                                to_add.push(new_data);
+                            }
+                            _ => {}
+                        },
+                        Err(e) => {
+                            tracing::error!("data parse error on block creation: {e}");
                         }
-                        _ => {}
                     }
-                }
-
-                for k in to_remove.drain(..) {
-                    data.remove(&k);
                 }
 
                 for d in to_add.drain(..) {
@@ -151,11 +148,12 @@ impl Database {
                                         Self::handle_add_url(&pool, url).await
                                     }
                                     Command::NextWork { .. } => {
-                                        tracing::error!("NextWork should not be in a block");
+                                        // tracing::error!("NextWork should not be in a block");
                                         Ok(())
                                     }
                                     Command::ClaimWork { pubkey, oid, url } => {
-                                        Self::handle_claim_work(&claimers, pubkey, oid, url).await
+                                        Self::handle_claim_work(&pool, &claimers, pubkey, oid, url)
+                                            .await
                                     }
                                 };
 
