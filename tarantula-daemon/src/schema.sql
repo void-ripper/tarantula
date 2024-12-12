@@ -1,3 +1,8 @@
+CREATE TABLE user (
+    id INTEGER PRIMARY KEY,
+    pubkey BLOB NOT NULL,
+    created DATETIME NOT NULL DEFAULT current_timestamp
+);
 
 CREATE TABLE host (
     id INTEGER PRIMARY KEY,
@@ -31,7 +36,8 @@ CREATE UNIQUE INDEX uk_link ON link(host_id, path_id, query_id);
 
 CREATE TABLE keyword (
     id INTEGER PRIMARY KEY,
-    name VARCHAR NOT NULL UNIQUE
+    name VARCHAR NOT NULL UNIQUE,
+    created DATETIME NOT NULL DEFAULT current_timestamp
 );
 
 CREATE TABLE link_keyword (

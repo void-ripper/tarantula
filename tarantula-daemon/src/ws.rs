@@ -18,7 +18,9 @@ pub enum TarantulaMessage {
     AddUrl {
         url: String,
     },
-    NextWork,
+    NextWork {
+        pubkey: String,
+    },
     NextWorkAnswer {
         url: String,
     },
@@ -88,7 +90,13 @@ pub async fn handle_message(
                     tracing::error!("add url: {e}");
                 }
             }
-            TarantulaMessage::NextWork => {}
+            TarantulaMessage::NextWork { pubkey } => {
+                let pubk = hex::decode(pubkey).unwrap();
+                let mut pubkey = [0u8; 33];
+                pubkey.copy_from_slice(&pubk);
+
+                app.db.get_next_work(pubkey).await;
+            }
             TarantulaMessage::NextWorkAnswer { .. } => {
                 tracing::error!("we should never get a NextWorkAnswer");
             }

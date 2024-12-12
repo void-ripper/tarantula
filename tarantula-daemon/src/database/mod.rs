@@ -1,11 +1,13 @@
-use std::{sync::Arc, time::Duration};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use futures_util::StreamExt;
+use mcriddle::{blockchain::Data, PubKeyBytes, SignBytes};
 use sqlx::{
     sqlite::{SqliteConnectOptions, SqliteJournalMode},
     Executor, SqlitePool,
 };
+use tokio::sync::{broadcast, oneshot, Mutex};
 
 use crate::{config::Config, error::Error, ex};
 
@@ -14,17 +16,23 @@ mod next_work;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub(crate) enum Command {
-    AddUrl { url: String },
-    NextWork,
-}
-
-#[derive(BorshDeserialize, BorshSerialize)]
-pub(crate) enum Response {
-    NextWork,
+    AddUrl {
+        url: String,
+    },
+    NextWork {
+        pubkey: PubKeyBytes,
+        oid: String,
+    },
+    ClaimWork {
+        pubkey: PubKeyBytes,
+        oid: String,
+        url: String,
+    },
 }
 
 pub struct Database {
     peer: Arc<mcriddle::Peer>,
+    claimers: Arc<Mutex<HashMap<String, oneshot::Sender<String>>>>,
     pool: SqlitePool,
 }
 
@@ -59,7 +67,7 @@ impl Database {
             relationship_count: 3,
         };
         let peer = ex!(mcriddle::Peer::new(pcfg));
-        let mut next_blk = peer.last_block_receiver();
+        let next_blk = peer.last_block_receiver();
 
         for con in cfg.connections.iter() {
             if let Err(e) = peer.connect(*con).await {
@@ -67,37 +75,104 @@ impl Database {
             }
         }
 
-        tokio::spawn(async move {
-            loop {
-                match next_blk.recv().await {
-                    Ok(blk) => {
-                        for data in blk.data {
-                            match borsh::from_slice::<Command>(&data.data) {
-                                Ok(cmd) => {
-                                    let res = match cmd {
-                                        Command::AddUrl { url } => {
-                                            Self::handle_add_url(&pool0, url).await
-                                        }
-                                        Command::NextWork => Self::handle_next_work(&pool0).await,
-                                    };
+        let pool1 = pool.clone();
+        let peer1 = peer.clone();
+        peer.set_on_block_creation_cb(move |mut data: HashMap<SignBytes, Data>| {
+            let pool1 = pool1.clone();
+            let peer1 = peer1.clone();
 
-                                    if let Err(e) = res {
-                                        tracing::error!("command error: {e}");
+            Box::pin(async move {
+                let mut to_remove = Vec::new();
+                let mut to_add = Vec::new();
+
+                for (k, v) in data.iter() {
+                    let cmd: Command = borsh::from_slice(&v.data).unwrap();
+                    match cmd {
+                        Command::NextWork { pubkey, oid } => {
+                            to_remove.push(k.clone());
+                            let cmd =
+                                Self::handle_next_work(&pool1, pubkey, oid)
+                                    .await
+                                    .map_err(|e| {
+                                        mcriddle::Error::external(
+                                            line!(),
+                                            module_path!(),
+                                            e.to_string(),
+                                        )
+                                    })?;
+                            let cmd_data = borsh::to_vec(&cmd)
+                                .map_err(|e| mcriddle::Error::io(line!(), module_path!(), e))?;
+                            let new_data = peer1.create_data(cmd_data)?;
+                            to_add.push(new_data);
+                        }
+                        _ => {}
+                    }
+                }
+
+                for k in to_remove.drain(..) {
+                    data.remove(&k);
+                }
+
+                for d in to_add.drain(..) {
+                    data.insert(d.sign, d);
+                }
+
+                Ok(data)
+            })
+        })
+        .await;
+
+        let claimers = Arc::new(Mutex::new(HashMap::new()));
+        let claimers0 = claimers.clone();
+        tokio::spawn(async move {
+            Self::handle_new_blocks(next_blk, pool0, claimers0).await;
+        });
+
+        Ok(Self {
+            peer,
+            pool,
+            claimers,
+        })
+    }
+
+    async fn handle_new_blocks(
+        mut next_blk: broadcast::Receiver<mcriddle::blockchain::Block>,
+        pool: SqlitePool,
+        claimers: Arc<Mutex<HashMap<String, oneshot::Sender<String>>>>,
+    ) {
+        loop {
+            match next_blk.recv().await {
+                Ok(blk) => {
+                    for data in blk.data {
+                        match borsh::from_slice::<Command>(&data.data) {
+                            Ok(cmd) => {
+                                let res = match cmd {
+                                    Command::AddUrl { url } => {
+                                        Self::handle_add_url(&pool, url).await
                                     }
+                                    Command::NextWork { .. } => {
+                                        tracing::error!("NextWork should not be in a block");
+                                        Ok(())
+                                    }
+                                    Command::ClaimWork { pubkey, oid, url } => {
+                                        Self::handle_claim_work(&claimers, pubkey, oid, url).await
+                                    }
+                                };
+
+                                if let Err(e) = res {
+                                    tracing::error!("command error: {e}");
                                 }
-                                Err(e) => {
-                                    tracing::error!("borsh: {e}");
-                                }
+                            }
+                            Err(e) => {
+                                tracing::error!("borsh: {e}");
                             }
                         }
                     }
-                    Err(e) => {
-                        tracing::error!("{e}");
-                    }
+                }
+                Err(e) => {
+                    tracing::error!("{e}");
                 }
             }
-        });
-
-        Ok(Self { peer, pool })
+        }
     }
 }
