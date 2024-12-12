@@ -9,4 +9,4 @@ edition = "2021"
 
 [workspace]
 resolver = "2"
-members = ["tarantula-cli", "tarantula-daemon", "tarantula-scrapper"]
+members = ["tarantula-daemon", "tarantula-scrapper"]
