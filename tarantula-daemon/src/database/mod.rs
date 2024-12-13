@@ -13,6 +13,7 @@ use crate::{config::Config, error::Error, ex};
 
 mod add_url;
 mod next_work;
+mod scrap_result;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub(crate) enum Command {
@@ -27,6 +28,11 @@ pub(crate) enum Command {
         pubkey: PubKeyBytes,
         oid: String,
         url: String,
+    },
+    ScrapResult {
+        url: String,
+        keywords: HashMap<String, u32>,
+        links: Vec<String>,
     },
 }
 
@@ -154,6 +160,13 @@ impl Database {
                                     Command::ClaimWork { pubkey, oid, url } => {
                                         Self::handle_claim_work(&pool, &claimers, pubkey, oid, url)
                                             .await
+                                    }
+                                    Command::ScrapResult {
+                                        url,
+                                        keywords,
+                                        links,
+                                    } => {
+                                        Self::handle_scrap_result(&pool, url, keywords, links).await
                                     }
                                 };
 

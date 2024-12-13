@@ -18,15 +18,15 @@ ws.onmessage = (ev) => {
   
   console.log(msg)
   if (msg.kind === "NextWorkAnswer") {
-    // sck.send(JSON.stringify({
-    //   "kind": "ScrapResult",
-    //   "url": msg.url,
-    //   "keywords": {
-    //     "nutella": 3,
-    //     "spiderman": 2,
-    //   },
-    //   "links": ["https://www.youtube.com/watch?v=tFxmGDGAJr4"],
-    // }))
+    ws.send(JSON.stringify({
+      "kind": "ScrapResult",
+      "url": msg.url,
+      "keywords": {
+        "nutella": 3,
+        "spiderman": 2,
+      },
+      "links": ["https://www.youtube.com/watch?v=tFxmGDGAJr4"],
+    }))
   }
 
   ws.close()

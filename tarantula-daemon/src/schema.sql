@@ -49,5 +49,6 @@ CREATE TABLE link_keyword (
 
 CREATE TABLE link_to (
     link_id INTEGER REFERENCES link(id),
-    to_id INTEGER REFERENCES link(id)
+    to_id INTEGER REFERENCES link(id),
+    PRIMARY KEY (link_id, to_id)
 );

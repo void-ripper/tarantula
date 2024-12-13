@@ -5,7 +5,7 @@ use crate::{database::Command, error::Error, ex};
 
 use super::Database;
 
-async fn select_or_insert(
+pub async fn select_or_insert(
     pool: &SqlitePool,
     name: &str,
     col: &str,
@@ -23,7 +23,11 @@ async fn select_or_insert(
     })
 }
 
-async fn select_or_insert_host(pool: &SqlitePool, val: &str, https: bool) -> Result<i64, Error> {
+pub async fn select_or_insert_host(
+    pool: &SqlitePool,
+    val: &str,
+    https: bool,
+) -> Result<i64, Error> {
     let select = "SELECT id FROM host WHERE https = $1 AND name = $2";
     let id = ex!(sqlx::query(select)
         .bind(https)
