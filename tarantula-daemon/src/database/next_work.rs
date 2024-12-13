@@ -45,7 +45,7 @@ impl Database {
             path,
         );
 
-        if query.len() > 0 {
+        if !query.is_empty() {
             url.push('?');
             url.push_str(&query);
         }
@@ -61,11 +61,7 @@ impl Database {
         url: String,
     ) -> Result<(), Error> {
         let purl = ex!(Url::parse(&url));
-        let https = if "https" == purl.scheme() {
-            true
-        } else {
-            false
-        };
+        let https = "https" == purl.scheme();
         let host = purl.host_str().unwrap();
         let path = purl.path();
         let query = purl.query().unwrap_or("");

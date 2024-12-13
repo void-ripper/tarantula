@@ -25,7 +25,7 @@ async fn select_or_insert(
 
 async fn select_or_insert_host(pool: &SqlitePool, val: &str, https: bool) -> Result<i64, Error> {
     let select = "SELECT id FROM host WHERE https = $1 AND name = $2";
-    let id = ex!(sqlx::query(&select)
+    let id = ex!(sqlx::query(select)
         .bind(https)
         .bind(val)
         .fetch_optional(pool)
@@ -35,7 +35,7 @@ async fn select_or_insert_host(pool: &SqlitePool, val: &str, https: bool) -> Res
         id.get(0)
     } else {
         let insert = "INSERT INTO host(https, name) VALUES($1, $2) RETURNING id";
-        let res = ex!(sqlx::query(&insert)
+        let res = ex!(sqlx::query(insert)
             .bind(https)
             .bind(val)
             .fetch_one(pool)
@@ -48,7 +48,7 @@ impl Database {
     pub async fn handle_add_url(pool: &SqlitePool, url: String) -> Result<(), Error> {
         let url = ex!(Url::parse(&url));
 
-        let https = if url.scheme() == "https" { true } else { false };
+        let https = url.scheme() == "https";
         let host = url.host_str().unwrap_or("");
         let path = url.path();
         let query = url.query().unwrap_or("");
@@ -76,7 +76,7 @@ impl Database {
         let https = match purl.scheme() {
             "https" => true,
             "http" => false,
-            n @ _ => {
+            n => {
                 return Err(Error {
                     line: line!(),
                     module: module_path!().into(),
@@ -101,7 +101,7 @@ impl Database {
             .fetch_optional(&self.pool)
             .await);
 
-        if !res.is_some() {
+        if res.is_none() {
             let data = ex!(borsh::to_vec(&Command::AddUrl { url }));
             ex!(self.peer.share(data).await);
         }
