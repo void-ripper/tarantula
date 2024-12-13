@@ -112,7 +112,9 @@ pub async fn handle_message(
             url,
             keywords,
             links,
-        } => {}
+        } => {
+            ex!(app.db.scrap_result(url, keywords, links).await);
+        }
     }
 
     Ok(())

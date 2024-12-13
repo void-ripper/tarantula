@@ -43,7 +43,8 @@ CREATE TABLE keyword (
 CREATE TABLE link_keyword (
     link_id INTEGER REFERENCES link(id),
     keyword_id INTEGER REFERENCES keyword(id),
-    count INTEGER NOT NULL
+    count INTEGER NOT NULL,
+    PRIMARY KEY (link_id, keyword_id)
 );
 
 CREATE TABLE link_to (
