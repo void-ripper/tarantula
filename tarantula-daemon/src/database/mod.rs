@@ -14,6 +14,7 @@ use crate::{config::Config, error::Error, ex};
 mod add_url;
 mod next_work;
 mod scrap_result;
+pub mod search;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub(crate) enum Command {

@@ -16,7 +16,14 @@
         </div>
       </div>
     </div>
-    
   </div>
 </form>
+
+<div class="content">
+  <ul>
+    {% for res in results %} 
+    <li><a href="{{ res.url }}">{{ res.url }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
 {% endblock  %}

@@ -37,6 +37,7 @@ CREATE UNIQUE INDEX uk_link ON link(host_id, path_id, query_id);
 CREATE TABLE keyword (
     id INTEGER PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
+    count INTEGER NOT NULL DEFAULT 0,
     created DATETIME NOT NULL DEFAULT current_timestamp
 );
 
