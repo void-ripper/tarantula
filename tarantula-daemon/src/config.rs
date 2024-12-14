@@ -8,12 +8,15 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Config {
-    /// The websocket.
+    /// The web frontend and websocket api.
     pub listen: SocketAddr,
+    /// The address of the mcriddle node.
     pub peer: SocketAddr,
+    /// The folder where the data is stored.
     pub folder: PathBuf,
     /// The log filter.
     pub log: String,
+    /// Initial node connections.
     pub connections: Vec<SocketAddr>,
 }
 
