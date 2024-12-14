@@ -71,6 +71,7 @@ impl Database {
             thin: false,
             relationship_time: Duration::from_secs(30),
             relationship_count: 3,
+            next_candidates: 3,
         };
         let peer = ex!(mcriddle::Peer::new(pcfg));
         let next_blk = peer.last_block_receiver();
@@ -83,7 +84,7 @@ impl Database {
 
         let pool1 = pool.clone();
         let peer1 = peer.clone();
-        peer.set_on_block_creation_cb(move |mut data: HashMap<SignBytes, Data>| {
+        peer.set_on_block_creation_cb(move |mut data| {
             let pool1 = pool1.clone();
             let peer1 = peer1.clone();
 
