@@ -70,8 +70,11 @@ impl Database {
             keep_alive: Duration::from_millis(300),
             data_gather_time: Duration::from_millis(500),
             thin: false,
-            relationship_time: Duration::from_secs(30),
-            relationship_count: 3,
+            relationship: mcriddle::ConfigRelationship {
+                time: Duration::from_secs(30),
+                count: 3,
+                retry: 3,
+            },
             next_candidates: 3,
         };
         let peer = ex!(mcriddle::Peer::new(pcfg));

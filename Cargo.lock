@@ -1278,7 +1278,6 @@ dependencies = [
  "cbc",
  "hashbrown 0.15.2",
  "hex",
- "indexmap",
  "k256",
  "rand",
  "tokio",
