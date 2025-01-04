@@ -76,6 +76,7 @@ impl Database {
                 retry: 3,
             },
             next_candidates: 3,
+            forced_restart: true,
         };
         let peer = ex!(mcriddle::Peer::new(pcfg));
         let next_blk = peer.last_block_receiver();
