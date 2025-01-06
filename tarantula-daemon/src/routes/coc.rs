@@ -6,5 +6,5 @@ use axum::response::IntoResponse;
 pub struct CocHtml {}
 
 pub async fn coc() -> impl IntoResponse {
-    CocHtml {}
+    CocHtml {}.render().unwrap()
 }

@@ -103,7 +103,12 @@ pub async fn handle_message(
             let url = ex!(app.db.get_next_work(pubkey).await);
             let msg = TarantulaMessage::NextWorkAnswer { url };
             let data = ex!(serde_json::to_string(&msg));
-            ex!(client.out.lock().await.send(Message::Text(data)).await);
+            ex!(client
+                .out
+                .lock()
+                .await
+                .send(Message::Text(data.into()))
+                .await);
         }
         TarantulaMessage::NextWorkAnswer { .. } => {
             tracing::error!("we should never get a NextWorkAnswer");

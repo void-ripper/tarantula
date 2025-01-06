@@ -15,9 +15,10 @@ struct SearchHtml {
 }
 
 pub async fn index(ctx: State<AppPtr>) -> Result<impl IntoResponse> {
-    Ok(SearchHtml {
+    Ok(ex!(SearchHtml {
         results: Vec::new(),
-    })
+    }
+    .render()))
 }
 
 #[derive(Deserialize)]
@@ -30,5 +31,5 @@ pub async fn search(
     Form(search): Form<SearchForm>,
 ) -> Result<impl IntoResponse> {
     let results = ex!(state.db.search(&search.query).await);
-    Ok(SearchHtml { results })
+    Ok(ex!(SearchHtml { results }.render()))
 }

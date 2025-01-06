@@ -1,8 +1,9 @@
+use crate::error::Error;
 use askama::Template;
 use axum::{extract::State, response::IntoResponse, Form};
 use serde::Deserialize;
 
-use crate::{error::Result, AppPtr};
+use crate::{error::Result, ex, AppPtr};
 
 #[derive(Template)]
 #[template(path = "url.html")]
@@ -11,9 +12,10 @@ struct UrlHtml {
 }
 
 pub async fn add_url() -> Result<impl IntoResponse> {
-    Ok(UrlHtml {
+    Ok(ex!(UrlHtml {
         error: "".to_owned(),
-    })
+    }
+    .render()))
 }
 
 #[derive(Deserialize)]
@@ -27,7 +29,8 @@ pub async fn add_url_to_db(
 ) -> Result<impl IntoResponse> {
     state.db.add_url(add.url).await?;
 
-    Ok(UrlHtml {
+    Ok(ex!(UrlHtml {
         error: "".to_owned(),
-    })
+    }
+    .render()))
 }

@@ -6,5 +6,5 @@ use axum::response::IntoResponse;
 pub struct DocHtml {}
 
 pub async fn doc() -> impl IntoResponse {
-    DocHtml {}
+    DocHtml {}.render().unwrap()
 }

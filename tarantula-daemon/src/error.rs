@@ -33,7 +33,8 @@ impl IntoResponse for Error {
             ErrorHtml {
                 msg: format!("{}[{}] => {}", self.module, self.line, self.msg),
             }
-            .into_response(),
+            .render()
+            .unwrap(),
         )
             .into_response()
     }
