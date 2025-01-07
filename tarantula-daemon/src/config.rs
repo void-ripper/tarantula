@@ -12,12 +12,14 @@ pub struct Config {
     pub listen: SocketAddr,
     /// The address of the mcriddle node.
     pub peer: SocketAddr,
+    /// A Socks5 proxy. Commonly used for TOR.
+    pub proxy: Option<SocketAddr>,
     /// The folder where the data is stored.
     pub folder: PathBuf,
     /// The log filter.
     pub log: String,
     /// Initial node connections.
-    pub connections: Vec<SocketAddr>,
+    pub connections: Vec<String>,
 }
 
 pub fn load<P: AsRef<Path>>(name: P) -> Result<Config, Error> {

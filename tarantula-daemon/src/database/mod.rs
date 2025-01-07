@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use futures_util::StreamExt;
-use mcriddle::{blockchain::Data, PubKeyBytes, SignBytes};
+use mcriddle::{IntoTargetAddr, PubKeyBytes};
 use sqlx::{
     sqlite::{SqliteConnectOptions, SqliteJournalMode},
     Executor, SqlitePool,
@@ -67,6 +67,7 @@ impl Database {
         let pcfg = mcriddle::Config {
             addr: cfg.peer,
             folder: cfg.folder.clone(),
+            proxy: cfg.proxy,
             keep_alive: Duration::from_millis(3_000),
             data_gather_time: Duration::from_millis(500),
             thin: false,
@@ -82,7 +83,10 @@ impl Database {
         let next_blk = peer.last_block_receiver();
 
         for con in cfg.connections.iter() {
-            if let Err(e) = peer.connect(*con).await {
+            if let Err(e) = peer
+                .connect(con.as_str().into_target_addr().unwrap().to_owned())
+                .await
+            {
                 tracing::error!("{e}");
             }
         }
