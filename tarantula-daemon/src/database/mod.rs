@@ -67,7 +67,7 @@ impl Database {
         let pcfg = mcriddle::Config {
             addr: cfg.peer,
             folder: cfg.folder.clone(),
-            keep_alive: Duration::from_millis(300),
+            keep_alive: Duration::from_millis(3_000),
             data_gather_time: Duration::from_millis(500),
             thin: false,
             relationship: mcriddle::ConfigRelationship {
