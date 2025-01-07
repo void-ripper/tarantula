@@ -6,6 +6,7 @@ const urls = [
   "https://docs.rs/ratatui/latest/ratatui/index.html",
   "https://www.npmjs.com/package/puppeteer",
   "https://www.youtube.com/watch?v=T61ZfLMJUMk&t=2412s",
+  "https://www.youtube.com/watch?v=9gQvDmoU6yk",
 ]
 
 sck.onopen = () => {
