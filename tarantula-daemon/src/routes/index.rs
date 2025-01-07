@@ -1,5 +1,9 @@
 use askama::Template;
-use axum::{extract::State, response::IntoResponse, Form};
+use axum::{
+    extract::State,
+    response::{Html, IntoResponse},
+    Form,
+};
 use serde::Deserialize;
 
 use crate::{
@@ -14,11 +18,11 @@ struct SearchHtml {
     results: Vec<SearchResult>,
 }
 
-pub async fn index(ctx: State<AppPtr>) -> Result<impl IntoResponse> {
-    Ok(ex!(SearchHtml {
+pub async fn index(_ctx: State<AppPtr>) -> Result<impl IntoResponse> {
+    Ok(Html(ex!(SearchHtml {
         results: Vec::new(),
     }
-    .render()))
+    .render())))
 }
 
 #[derive(Deserialize)]
@@ -31,5 +35,5 @@ pub async fn search(
     Form(search): Form<SearchForm>,
 ) -> Result<impl IntoResponse> {
     let results = ex!(state.db.search(&search.query).await);
-    Ok(ex!(SearchHtml { results }.render()))
+    Ok(Html(ex!(SearchHtml { results }.render())))
 }

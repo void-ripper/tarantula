@@ -56,7 +56,7 @@ async fn main() -> Result<(), Error> {
     });
 
     let route = Router::new()
-        .nest("/", routes::config())
+        .merge(routes::config())
         .route("/ws", any(ws::handle_connection))
         .with_state(app.clone())
         .layer(CompressionLayer::new())
