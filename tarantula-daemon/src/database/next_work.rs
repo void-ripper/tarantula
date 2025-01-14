@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use mcriddle::PubKeyBytes;
+use mccloud::PubKeyBytes;
 use sqlx::{Row, SqlitePool};
 use tokio::sync::{oneshot, Mutex};
 use url::Url;

@@ -10,10 +10,10 @@ use serde::Deserialize;
 pub struct Config {
     /// The web frontend and websocket api.
     pub listen: SocketAddr,
-    /// The address of the mcriddle node.
+    /// The address of the mccloud node.
     pub peer: SocketAddr,
     /// A Socks5 proxy. Commonly used for TOR.
-    pub proxy: Option<SocketAddr>,
+    pub proxy: Option<mccloud::config::Proxy>,
     /// The folder where the data is stored.
     pub folder: PathBuf,
     /// The log filter.

@@ -1,8 +1,8 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, sync::Arc};
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use futures_util::StreamExt;
-use mcriddle::{IntoTargetAddr, PubKeyBytes};
+use mccloud::{IntoTargetAddr, Peer, PubKeyBytes};
 use sqlx::{
     sqlite::{SqliteConnectOptions, SqliteJournalMode},
     Executor, SqlitePool,
@@ -38,7 +38,7 @@ pub(crate) enum Command {
 }
 
 pub struct Database {
-    peer: Arc<mcriddle::Peer>,
+    peer: Arc<mccloud::Peer>,
     claimers: Arc<Mutex<HashMap<String, oneshot::Sender<String>>>>,
     pool: SqlitePool,
 }
@@ -64,22 +64,13 @@ impl Database {
             while let Some(Ok(_n)) = stream.next().await {}
         }
 
-        let pcfg = mcriddle::Config {
+        let pcfg = mccloud::config::Config {
             addr: cfg.peer,
             folder: cfg.folder.clone(),
-            proxy: cfg.proxy,
-            keep_alive: Duration::from_millis(3_000),
-            data_gather_time: Duration::from_millis(500),
-            thin: false,
-            relationship: mcriddle::ConfigRelationship {
-                time: Duration::from_secs(30),
-                count: 3,
-                retry: 3,
-            },
-            next_candidates: 3,
-            forced_restart: true,
+            proxy: cfg.proxy.clone(),
+            ..Default::default()
         };
-        let peer = ex!(mcriddle::Peer::new(pcfg));
+        let peer = ex!(Peer::new(pcfg));
         let next_blk = peer.last_block_receiver();
 
         for con in cfg.connections.iter() {
@@ -107,14 +98,14 @@ impl Database {
                                 let cmd = Self::handle_next_work(&pool1, pubkey, oid)
                                     .await
                                     .map_err(|e| {
-                                        mcriddle::Error::external(
+                                        mccloud::Error::external(
                                             line!(),
                                             module_path!(),
                                             e.to_string(),
                                         )
                                     })?;
                                 let cmd_data = borsh::to_vec(&cmd)
-                                    .map_err(|e| mcriddle::Error::io(line!(), module_path!(), e))?;
+                                    .map_err(|e| mccloud::Error::io(line!(), module_path!(), e))?;
                                 let new_data = peer1.create_data(cmd_data)?;
                                 to_add.push(new_data);
                             }
@@ -149,7 +140,7 @@ impl Database {
     }
 
     async fn handle_new_blocks(
-        mut next_blk: broadcast::Receiver<mcriddle::blockchain::Block>,
+        mut next_blk: broadcast::Receiver<mccloud::blockchain::Block>,
         pool: SqlitePool,
         claimers: Arc<Mutex<HashMap<String, oneshot::Sender<String>>>>,
     ) {

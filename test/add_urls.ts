@@ -1,5 +1,5 @@
 
-const sck = new WebSocket("ws://127.0.0.1:39093/ws")
+const api = "http://127.0.0.1:39093/api/add-url"
 const urls = [
   "https://www.youtube.com/watch?v=gOymiMEKWqQ",
   "https://www.youtube.com/watch?v=pTsKD-m5tgI",
@@ -9,13 +9,16 @@ const urls = [
   "https://www.youtube.com/watch?v=9gQvDmoU6yk",
 ]
 
-sck.onopen = () => {
-  for (let url of urls) {
-    sck.send(JSON.stringify({
-      "kind": "AddUrl",
-      "url": url,
-    }))
-  }
+for(let url of urls) {
+  const resp = await fetch(api, {
+    method: "post",
+    headers: {"content-type": "application/json"},
+    body: JSON.stringify({ url })
+  })
 
-  sck.close()
+  if(!resp.ok) {
+    console.log(resp.statusText)
+    console.log(await resp.text())
+    break
+  }
 }

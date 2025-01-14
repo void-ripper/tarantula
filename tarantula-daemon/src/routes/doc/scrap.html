@@ -1,28 +1,25 @@
-<h5>Scrap a Website</h5>
-
 <article class="message is-info mb-6">
-  <div class="message-header">JS Example</div>
+  <div class="message-header">Scrap a Website</div>
   <div class="message-body">
-<pre style="font-family:monospace;color: rgb(216, 222, 233); background-color: rgb(46, 52, 64); font-weight: 400; "><span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> sck = <span style="color: rgb(129, 161, 193); font-weight: 400;">new</span> <span style="color: rgb(143, 188, 187); font-weight: 400;">WebSocket</span>(<span style="color: rgb(163, 190, 140); font-weight: 400;">"ws://127.0.0.1:39093/ws"</span>)
+<pre style="font-family:monospace;color: rgb(216, 222, 233); background-color: rgb(46, 52, 64); font-weight: 400; "><span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> host = <span style="color: rgb(163, 190, 140); font-weight: 400;">"http://127.0.0.1:39093"</span>
+<span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> resp = <span style="color: rgb(129, 161, 193); font-weight: 400;">await</span> <span style="color: rgb(143, 188, 187); font-weight: 400;">fetch</span>(host +  <span style="color: rgb(163, 190, 140); font-weight: 400;">"/api/next-work"</span>, {<span style="color: rgb(143, 188, 187); font-weight: 400;">method</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"post"</span>})
+<span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> msg = <span style="color: rgb(129, 161, 193); font-weight: 400;">await</span> resp.<span style="color: rgb(143, 188, 187); font-weight: 400;">json</span>()
 
-sck.<span style="color: rgb(136, 192, 208); font-weight: 400;">onmessage</span> = <span style="color: rgb(136, 192, 208); font-weight: 400;">(<span style="color: rgb(216, 222, 233); font-weight: 400;">data</span>) =&gt;</span> {
-  <span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> msg = <span style="color: rgb(143, 188, 187); font-weight: 400;">JSON</span>.<span style="color: rgb(143, 188, 187); font-weight: 400;">parse</span>(data)
+<span style="color: rgb(143, 188, 187); font-weight: 400;">fetch</span>(host + <span style="color: rgb(163, 190, 140); font-weight: 400;">"/api/scrap-result"</span>, {
+  <span style="color: rgb(143, 188, 187); font-weight: 400;">method</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"post"</span>,
+  <span style="color: rgb(143, 188, 187); font-weight: 400;">headers</span>: {<span style="color: rgb(163, 190, 140); font-weight: 400;">"content-type"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"application/json"</span>},
+  <span style="color: rgb(143, 188, 187); font-weight: 400;">body</span>: <span style="color: rgb(143, 188, 187); font-weight: 400;">JSON</span>.<span style="color: rgb(143, 188, 187); font-weight: 400;">stringify</span>({
+    <span style="color: rgb(163, 190, 140); font-weight: 400;">"url"</span>: msg.<span style="color: rgb(136, 192, 208); font-weight: 400;">url</span>,
+    <span style="color: rgb(163, 190, 140); font-weight: 400;">"keywords"</span>: {
+      <span style="color: rgb(163, 190, 140); font-weight: 400;">"nutella"</span>: <span style="color: rgb(180, 142, 173); font-weight: 400;">3</span>,   <span style="color: rgb(76, 86, 106); font-weight: 400;">// the keyword and how often it did occoure</span>
+      <span style="color: rgb(163, 190, 140); font-weight: 400;">"spiderman"</span>: <span style="color: rgb(180, 142, 173); font-weight: 400;">2</span>,
+    },
+    <span style="color: rgb(76, 86, 106); font-weight: 400;">// the links found on the url</span>
+    <span style="color: rgb(163, 190, 140); font-weight: 400;">"links"</span>: [<span style="color: rgb(163, 190, 140); font-weight: 400;">"https://www.youtube.com/watch?v=tFxmGDGAJr4"</span>],
+  })
+})
 
-  <span style="color: rgb(129, 161, 193); font-weight: 400;">if</span> (msg.<span style="color: rgb(136, 192, 208); font-weight: 400;">kind</span> === <span style="color: rgb(163, 190, 140); font-weight: 400;">"NextWorkAnswer"</span>) {
-    sck.<span style="color: rgb(143, 188, 187); font-weight: 400;">send</span>(<span style="color: rgb(143, 188, 187); font-weight: 400;">JSON</span>.<span style="color: rgb(143, 188, 187); font-weight: 400;">stringify</span>({
-      <span style="color: rgb(163, 190, 140); font-weight: 400;">"kind"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"ScrapResult"</span>,
-      <span style="color: rgb(163, 190, 140); font-weight: 400;">"url"</span>: msg.<span style="color: rgb(136, 192, 208); font-weight: 400;">url</span>,
-      <span style="color: rgb(163, 190, 140); font-weight: 400;">"keywords"</span>: {
-        <span style="color: rgb(163, 190, 140); font-weight: 400;">"nutella"</span>: <span style="color: rgb(180, 142, 173); font-weight: 400;">3</span>,
-        <span style="color: rgb(163, 190, 140); font-weight: 400;">"spiderman"</span>: <span style="color: rgb(180, 142, 173); font-weight: 400;">2</span>,
-      },
-      <span style="color: rgb(163, 190, 140); font-weight: 400;">"links"</span>: [<span style="color: rgb(163, 190, 140); font-weight: 400;">"https://www.youtube.com/watch?v=tFxmGDGAJr4"</span>],
-    }))
-  }
-}
 
-sck.<span style="color: rgb(143, 188, 187); font-weight: 400;">send</span>(<span style="color: rgb(143, 188, 187); font-weight: 400;">JSON</span>.<span style="color: rgb(143, 188, 187); font-weight: 400;">stringify</span>({
-  <span style="color: rgb(163, 190, 140); font-weight: 400;">"kind"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"NextWork"</span>
-}))</pre>
+</pre>
   </div>
 </article>

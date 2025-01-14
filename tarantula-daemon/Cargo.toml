@@ -5,21 +5,20 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-# mcriddle = { git = "https://github.com/void-ripper/mcriddle.git", tag = "v0.1.0" }
-mcriddle = { path = "../../mcriddle/mcriddle" }
+mccloud = { path = "../../mccloud/mccloud", features = ["serde"] }
 futures-util = "0.3.31"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.135"
 sqlx = { version = "0.8.3", features = ["sqlite", "runtime-tokio"] }
-tokio = { version = "1.42.0", features = ["full"] }
+tokio = { version = "1.43.0", features = ["full"] }
 toml = "0.8.19"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 url = "2.5.4"
-borsh = { version = "1.5.3", features = ["derive"] }
+borsh = { version = "1.5.4", features = ["derive"] }
 axum = { version = "0.8.1", features = ["ws"] }
 askama = { version = "0.12.1" }
 tower-http = { version = "0.6.2", features = ["trace", "compression-gzip"] }
 hex = "0.4.3"
 nanoid = "0.4.0"
-clap = { version = "4.5.23", features = ["derive"] }
+clap = { version = "4.5.26", features = ["derive"] }

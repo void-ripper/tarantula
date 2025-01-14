@@ -3,6 +3,7 @@ use axum::{routing::get, Router};
 
 use crate::AppPtr;
 
+mod api;
 mod coc;
 mod doc;
 // mod faq;
@@ -20,4 +21,5 @@ pub fn config() -> Router<AppPtr> {
         .route("/coc", get(coc::coc))
         // .route("/faq", get(faq::faq))
         .route("/add-url", get(url::add_url).post(url::add_url_to_db))
+        .nest("/api", api::config())
 }

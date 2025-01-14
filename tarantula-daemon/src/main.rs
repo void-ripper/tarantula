@@ -1,18 +1,16 @@
-use std::{collections::HashMap, net::SocketAddr, path::PathBuf, sync::Arc};
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
 use crate::error::Error;
-use axum::{routing::any, Router};
+use axum::Router;
 use clap::Parser;
 use database::Database;
-use tokio::{net::TcpListener, sync::RwLock};
+use tokio::net::TcpListener;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
-use ws::Client;
 
 mod config;
 mod database;
 mod error;
 mod routes;
-mod ws;
 
 #[macro_export]
 macro_rules! ex {
@@ -26,7 +24,6 @@ macro_rules! ex {
 }
 
 pub(crate) struct App {
-    clients: RwLock<HashMap<SocketAddr, Arc<Client>>>,
     db: Database,
 }
 
@@ -51,13 +48,11 @@ async fn main() -> Result<(), Error> {
     }
 
     let app = Arc::new(App {
-        clients: RwLock::new(HashMap::new()),
         db: ex!(Database::new(&cfg).await),
     });
 
     let route = Router::new()
         .merge(routes::config())
-        .route("/ws", any(ws::handle_connection))
         .with_state(app.clone())
         .layer(CompressionLayer::new())
         .layer(TraceLayer::new_for_http());

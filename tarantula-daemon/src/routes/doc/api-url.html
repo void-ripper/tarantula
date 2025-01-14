@@ -1,16 +1,16 @@
-
-<h5>Add Url</h5>
-
 <article class="message is-info mb-6">
-  <div class="message-header">JS Example</div>
+  <div class="message-header">Add Url</div>
   <div class="message-body">
-    <pre style="font-family:monospace;color: rgb(216, 222, 233); background-color: rgb(46, 52, 64); font-weight: 400; ">
-    <span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> sck = <span style="color: rgb(129, 161, 193); font-weight: 400;">new</span> <span style="color: rgb(143, 188, 187); font-weight: 400;">WebSocket</span>(<span style="color: rgb(163, 190, 140); font-weight: 400;">"ws://127.0.0.1:39093/ws"</span>)
-    
-    sck.<span style="color: rgb(143, 188, 187); font-weight: 400;">send</span>(<span style="color: rgb(143, 188, 187); font-weight: 400;">JSON</span>.<span style="color: rgb(143, 188, 187); font-weight: 400;">stringify</span>({
-      <span style="color: rgb(163, 190, 140); font-weight: 400;">"kind"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"AddUrl"</span>,
-      <span style="color: rgb(163, 190, 140); font-weight: 400;">"url"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"https://www.youtube.com/watch?v=gOymiMEKWqQ"</span>
-    }))</pre>
+<pre style="font-family:monospace;color: rgb(216, 222, 233); background-color: rgb(46, 52, 64); font-weight: 400; "><span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> host = <span style="color: rgb(163, 190, 140); font-weight: 400;">"http://127.0.0.1:39093"</span>
+<span style="color: rgb(129, 161, 193); font-weight: 400;">const</span> resp = <span style="color: rgb(129, 161, 193); font-weight: 400;">await</span> <span style="color: rgb(143, 188, 187); font-weight: 400;">fetch</span>(host + <span style="color: rgb(163, 190, 140); font-weight: 400;">"/api/add-url"</span>, {
+  <span style="color: rgb(143, 188, 187); font-weight: 400;">method</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"post"</span>,
+  <span style="color: rgb(143, 188, 187); font-weight: 400;">headers</span>: { <span style="color: rgb(163, 190, 140); font-weight: 400;">"content-type"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"application/json"</span> },
+  <span style="color: rgb(143, 188, 187); font-weight: 400;">body</span>: <span style="color: rgb(143, 188, 187); font-weight: 400;">JSON</span>.<span style="color: rgb(143, 188, 187); font-weight: 400;">stringify</span>({
+    <span style="color: rgb(163, 190, 140); font-weight: 400;">"url"</span>: <span style="color: rgb(163, 190, 140); font-weight: 400;">"https://www.youtube.com/watch?v=gOymiMEKWqQ"</span>
+  })
+})
+
+</pre>
   </div>
 </article>
 

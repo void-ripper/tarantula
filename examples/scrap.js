@@ -1,21 +1,17 @@
-const sck = new WebSocket("ws://127.0.0.1:39093/ws")
+const host = "http://127.0.0.1:39093"
+const resp = await fetch(host +  "/api/next-work", {method: "post"})
+const msg = await resp.json()
 
-sck.onmessage = (data) => {
-  const msg = JSON.parse(data)
-
-  if (msg.kind === "NextWorkAnswer") {
-    sck.send(JSON.stringify({
-      "kind": "ScrapResult",
-      "url": msg.url,
-      "keywords": {
-        "nutella": 3,
-        "spiderman": 2,
-      },
-      "links": ["https://www.youtube.com/watch?v=tFxmGDGAJr4"],
-    }))
-  }
-}
-
-sck.send(JSON.stringify({
-  "kind": "NextWork"
-}))
+fetch(host + "/api/scrap-result", {
+  method: "post",
+  headers: {"content-type": "application/json"},
+  body: JSON.stringify({
+    "url": msg.url,
+    "keywords": {
+      "nutella": 3,   // the keyword and how often it did occoure
+      "spiderman": 2,
+    },
+    // the links found on the url
+    "links": ["https://www.youtube.com/watch?v=tFxmGDGAJr4"],
+  })
+})
