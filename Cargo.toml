@@ -1,6 +1,8 @@
 [profile.release]
 lto = true
 strip = true
+opt-level = "z"
+panic = "abort"
 
 [workspace.package]
 version = "0.1.0"
