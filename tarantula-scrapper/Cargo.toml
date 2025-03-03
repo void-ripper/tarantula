@@ -5,3 +5,9 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
+headless_chrome = "1.0.17"
+hex = "0.4.3"
+k256 = "0.13.4"
+serde = { version = "1.0.218", features = ["derive"] }
+toml = "0.8.20"
+ureq = { version = "3.0.8", features = ["json"] }
