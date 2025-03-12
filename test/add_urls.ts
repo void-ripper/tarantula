@@ -7,6 +7,8 @@ const urls = [
   "https://www.npmjs.com/package/puppeteer",
   "https://www.youtube.com/watch?v=T61ZfLMJUMk&t=2412s",
   "https://www.youtube.com/watch?v=9gQvDmoU6yk",
+  "https://wildtruth.net/",
+  "https://www.youtube.com/watch?v=nXCRytg5RaY",
 ]
 
 for(let url of urls) {
