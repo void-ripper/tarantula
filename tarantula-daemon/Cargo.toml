@@ -5,20 +5,20 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-mccloud = { path = "../../mccloud/mccloud", features = ["serde"] }
+mccloud = { git = "http://192.168.1.7:3000/void-saint/mccloud.git", features = ["serde"] }
 futures-util = "0.3.31"
-serde = { version = "1.0.218", features = ["derive"] }
-serde_json = "1.0.139"
-sqlx = { version = "0.8.3", features = ["sqlite", "runtime-tokio"] }
-tokio = { version = "1.43.0", features = ["full"] }
-toml = "0.8.20"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+sqlx = { version = "0.8.5", features = ["sqlite", "runtime-tokio"] }
+tokio = { version = "1.45.0", features = ["full"] }
+toml = "0.8.22"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 url = "2.5.4"
-borsh = { version = "1.5.5", features = ["derive"] }
-axum = { version = "0.8.1" }
-askama = { version = "0.12.1" }
-tower-http = { version = "0.6.2", features = ["trace", "compression-gzip"] }
+borsh = { version = "1.5.7", features = ["derive"] }
+axum = { version = "0.8.4" }
+askama = { version = "0.14.0" }
+tower-http = { version = "0.6.4", features = ["trace", "compression-gzip"] }
 hex = "0.4.3"
 nanoid = "0.4.0"
-clap = { version = "4.5.31", features = ["derive"] }
+clap = { version = "4.5.38", features = ["derive"] }
