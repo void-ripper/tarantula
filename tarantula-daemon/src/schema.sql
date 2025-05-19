@@ -7,7 +7,7 @@ CREATE TABLE user (
 CREATE TABLE host (
     id INTEGER PRIMARY KEY,
     https INT NOT NULL,
-    name VARCHAR NOT NULL UNIQUE,
+    name VARCHAR NOT NULL,
     created DATETIME NOT NULL DEFAULT current_timestamp
 );
 CREATE UNIQUE INDEX uk_host ON host(https, name);
