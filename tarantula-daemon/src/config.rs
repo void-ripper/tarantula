@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Config {
-    /// The web frontend and websocket api.
+    /// The web frontend.
     pub listen: SocketAddr,
     /// The address of the mccloud node.
     pub peer: SocketAddr,
