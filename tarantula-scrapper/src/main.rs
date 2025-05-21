@@ -3,6 +3,7 @@ use std::{collections::HashMap, error::Error, sync::Arc, time::Duration};
 use headless_chrome::{Browser, LaunchOptions, Tab};
 use k256::elliptic_curve::rand_core::OsRng;
 use serde::{Deserialize, Serialize};
+use tracing::Level;
 use ureq::http::Uri;
 
 mod config;
@@ -51,9 +52,11 @@ fn scrap(cfg: config::Config, tab: Arc<Tab>, public: Box<[u8]>) -> Result<(), Bo
 fn main() -> Result<(), Box<dyn Error>> {
     let cfg = config::load("scrapper.toml")?;
 
+    tracing_subscriber::fmt().with_env_filter(&cfg.log).init();
+
     let opts = LaunchOptions::default_builder()
         .headless(false)
-        .path(Some("/usr/bin/brave".parse()?))
+        .path(Some(cfg.browser.clone()))
         .build()?;
     let b = Browser::new(opts)?;
     let private = k256::SecretKey::random(&mut OsRng);

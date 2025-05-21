@@ -2404,6 +2404,8 @@ dependencies = [
  "k256",
  "serde",
  "toml",
+ "tracing",
+ "tracing-subscriber",
  "ureq 3.0.11",
 ]
 
